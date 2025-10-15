@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Character Creator — Vanilla</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- preload optional ambient sound -->
+  <audio id="bg-music" loop src="data:audio/mpeg;base64,//uQx..." crossorigin="anonymous"></audio>
+</head>
+<body class="light">
+  <!-- Loading / Intro animation -->
+  <div id="loader" class="loader">
+    <div class="loader-inner">
+      <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="40" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round"/>
+      </svg>
+      <p>Crafting your character…</p>
+    </div>
+  </div>
+
+  <!-- App container -->
+  <div id="app" class="app">
+    <!-- Left: preview -->
+    <aside class="panel preview-panel">
+      <div class="preview-topbar">
+        <h1>Live Preview</h1>
+        <div class="controls-inline">
+          <button class="btn icon" id="randomBtn" title="Randomize">🎲</button>
+          <button class="btn" id="downloadBtn" title="Download PNG">⬇️ Download</button>
+        </div>
+      </div>
+
+      <div class="preview-wrap">
+        <!-- Soft animated gradient + subtle particles background -->
+        <div class="preview-bg" id="previewBg"></div>
+
+        <!-- SVG character area -->
+        <div id="charStage" class="char-stage" role="img" aria-label="Character preview">
+          <!-- The character is an SVG so we can easily recolor and animate parts -->
+          <svg id="characterSVG" viewBox="0 0 400 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+            <!-- Background panel (also controlled) -->
+            <rect id="bgRect" x="0" y="0" width="400" height="600" rx="30" ry="30" fill="#EAF6FF"/>
+            
+            <!-- Simple body / torso -->
+            <g id="poseGroup" transform="translate(0,0)">
+              <!-- head -->
+              <g id="head" transform="translate(100,70)">
+                <ellipse id="face" cx="100" cy="100" rx="90" ry="95" fill="#F6D6B2" class="transitionable"/>
+              </g>
+
+              <!-- hair (several shapes; swapped by show/hide) -->
+              <g id="hairGroup" transform="translate(100,50)">
+                <path id="hairShort" d="M10 90 C60 -10 140 -10 190 90 Z" fill="#2F2F2F" class="transitionable"/>
+                <path id="hairLong" d="M0 80 C20 160 180 160 200 80 L200 10 C160 40 40 40 0 10 Z" fill="#2F2F2F" class="transitionable hidden"/>
+                <path id="hairPony" d="M15 90 C40 30 160 30 185 90 Z" fill="#2F2F2F" class="transitionable hidden"/>
+              </g>
+
+              <!-- eyes -->
+              <g id="eyesGroup" transform="translate(140,130)">
+                <g id="eyesNormal">
+                  <ellipse id="eyeL" cx="-30" cy="0" rx="18" ry="10" fill="#fff" />
+                  <circle id="pupilL" cx="-30" cy="0" r="6" fill="#000" class="transitionable"/>
+                  <ellipse id="eyeR" cx="30" cy="0" rx="18" ry="10" fill="#fff" />
+                  <circle id="pupilR" cx="30" cy="0" r="6" fill="#000" class="transitionable"/>
+                </g>
+                <g id="eyesClosed" class="hidden">
+                  <path d="M-48 0 Q-30 -8 -12 0" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                  <path d="M12 0 Q30 -8 48 0" stroke="#000" stroke-width="4" fill="none" stroke-linecap="round"/>
+                </g>
+              </g>
+
+              <!-- mouth -->
+              <g id="mouthGroup" transform="translate(200,220)">
+                <path id="mouthSmile" d="M-30 0 Q0 24 30 0" fill="none" stroke="#6B2E2E" stroke-width="4" stroke-linecap="round" class="transitionable"/>
+                <path id="mouthFrown" d="M-30 12 Q0 -12 30 12" fill="none" stroke="#6B2E2E" stroke-width="4" stroke-linecap="round" class="hidden"/>
+                <path id="mouthOpen" d="M-20 0 Q0 20 20 0 Q0 40 -20 0 Z" fill="#6B2E2E" class="hidden"/>
+              </g>
+
+              <!-- torso / clothes -->
+              <g id="torso" transform="translate(80,280)">
+                <rect id="shirt" x="40" y="0" rx="28" ry="28" width="220" height="220" fill="#6C9BD8" class="transitionable"/>
+              </g>
+
+              <!-- accessories (glasses, hat, earring) -->
+              <g id="accessories" transform="translate(0,0)">
+                <g id="glasses" class="hidden transitionable" transform="translate(120,150)">
+                  <rect x="-48" y="-12" width="36" height="22" rx="6" stroke="#222" fill="none" stroke-width="4"/>
+                  <rect x="12" y="-12" width="36" height="22" rx="6" stroke="#222" fill="none" stroke-width="4"/>
+                  <path d="M-12 -4 H12" stroke="#222" stroke-width="3"/>
+                </g>
+                <g id="hat" class="hidden transitionable" transform="translate(85,30)">
+                  <ellipse cx="145" cy="25" rx="100" ry="28" fill="#333"/>
+                  <rect x="95" y="-30" width="120" height="50" rx="12" fill="#333"/>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="preview-footer">
+        <small>Tip: drag to move the stage, pinch/scroll to zoom.</small>
+      </div>
+    </aside>
+
+    <!-- Right: customization -->
+    <main class="panel customize-panel">
+      <div class="custom-topbar">
+        <div class="left">
+          <h2>Customize</h2>
+          <p class="muted">Pick categories and tweak properties</p>
+        </div>
+
+        <div class="right controls-inline">
+          <button class="btn" id="toggleTheme">🌗 Theme</button>
+          <button class="btn ghost" id="playMusic">🔊 Music</button>
+          <button class="btn primary" id="saveBtn">💾 Save Character</button>
+          <button class="btn" id="loadBtn">📂 Load</button>
+        </div>
+      </div>
+
+      <!-- tabs -->
+      <nav class="tabs" role="tablist" aria-label="Customization categories">
+        <button class="tab active" data-tab="head">Head</button>
+        <button class="tab" data-tab="hair">Hair</button>
+        <button class="tab" data-tab="eyes">Eyes</button>
+        <button class="tab" data-tab="clothes">Clothes</button>
+        <button class="tab" data-tab="acc">Accessories</button>
+        <button class="tab" data-tab="background">Background</button>
+        <button class="tab" data-tab="pose">Pose</button>
+      </nav>
+
+      <!-- tab contents -->
+      <section class="tab-contents">
+        <!-- HEAD -->
+        <div class="tab-content active" id="tab-head">
+          <h3>Face</h3>
+          <label>Skin tone
+            <input type="color" id="skinColor" value="#F6D6B2">
+          </label>
+
+          <label>Face width
+            <input type="range" id="faceWidth" min="60" max="120" value="90">
+          </label>
+
+          <label>Mouth
+            <select id="mouthSelect">
+              <option value="smile">Smile</option>
+              <option value="open">Open</option>
+              <option value="frown">Frown</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- HAIR -->
+        <div class="tab-content" id="tab-hair">
+          <h3>Hair</h3>
+          <label>Style
+            <select id="hairStyle">
+              <option value="short">Short</option>
+              <option value="long">Long</option>
+              <option value="ponytail">Ponytail</option>
+            </select>
+          </label>
+          <label>Color
+            <input type="color" id="hairColor" value="#2F2F2F">
+          </label>
+          <label>Shine
+            <input type="range" id="hairShine" min="0" max="1" step="0.01" value="0.2">
+          </label>
+        </div>
+
+        <!-- EYES -->
+        <div class="tab-content" id="tab-eyes">
+          <h3>Eyes</h3>
+          <label>Eye color
+            <input type="color" id="eyeColor" value="#1A1A1A">
+          </label>
+          <label>Eye type
+            <select id="eyeType">
+              <option value="normal">Normal</option>
+              <option value="closed">Closed</option>
+            </select>
+          </label>
+          <label>Pupil size
+            <input type="range" id="pupilSize" min="3" max="12" value="6">
+          </label>
+        </div>
+
+        <!-- CLOTHES -->
+        <div class="tab-content" id="tab-clothes">
+          <h3>Clothes</h3>
+          <label>Top color
+            <input type="color" id="shirtColor" value="#6C9BD8">
+          </label>
+          <label>Pattern
+            <select id="shirtPattern">
+              <option value="solid">Solid</option>
+              <option value="stripe">Stripe</option>
+              <option value="gradient">Gradient</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- ACCESSORIES -->
+        <div class="tab-content" id="tab-acc">
+          <h3>Accessories</h3>
+          <label><input type="checkbox" id="toggleGlasses"> Glasses</label>
+          <label><input type="checkbox" id="toggleHat"> Hat</label>
+          <label>Accessory color
+            <input type="color" id="accColor" value="#222222">
+          </label>
+        </div>
+
+        <!-- BACKGROUND -->
+        <div class="tab-content" id="tab-background">
+          <h3>Background</h3>
+          <label>Background color
+            <input type="color" id="bgColor" value="#EAF6FF">
+          </label>
+          <label>Gradient style
+            <select id="bgGradient">
+              <option value="soft">Soft Radial</option>
+              <option value="striped">Striped</option>
+              <option value="none">None</option>
+            </select>
+          </label>
+          <label>Particles <input type="range" id="particleDensity" min="0" max="40" value="8" /></label>
+        </div>
+
+        <!-- POSE -->
+        <div class="tab-content" id="tab-pose">
+          <h3>Pose & Mood</h3>
+          <label>Pose mood
+            <select id="poseMood">
+              <option value="relaxed">Relaxed</option>
+              <option value="happy">Happy</option>
+              <option value="angry">Angry</option>
+            </select>
+          </label>
+          <label>Animate transitions <input type="checkbox" id="smoothTransitions" checked /></label>
+        </div>
+      </section>
+
+      <!-- footer controls: randomize, save, load -->
+      <footer class="custom-footer">
+        <div class="controls-inline">
+          <button class="btn outline" id="randomizeAll">Randomize All</button>
+          <button class="btn" id="exportJson">Export JSON</button>
+          <button class="btn ghost" id="importJsonBtn">Import JSON</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Load / Save modal (hidden by default) -->
+  <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <header>
+        <h3>Saved Characters</h3>
+        <button class="btn icon" id="closeModal">✖</button>
+      </header>
+      <main id="savesList" class="saves-list">
+        <!-- populated by JS -->
+      </main>
+      <footer>
+        <button class="btn" id="clearSaves">Clear All</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Hidden file input for import -->
+  <input id="importFile" type="file" accept="application/json" class="hidden" />
+
+  <script src="script.js" defer></script>
+</body>
+</html>
