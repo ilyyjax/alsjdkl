@@ -1,0 +1,184 @@
+/* style.css
+   - variables
+   - glassmorphism, soft shadows, glowing highlights
+   - responsive breakpoints
+   - animations and transitions
+*/
+
+/* ========= variables ========= */
+:root{
+  --bg: #f4f7fb;
+  --card: rgba(255,255,255,0.6);
+  --glass: rgba(255,255,255,0.12);
+  --accent: #6C9BD8;
+  --accent-2: #7BE7C7;
+  --muted: #7b7f87;
+  --radius: 14px;
+  --shadow-1: 0 6px 18px rgba(16,24,40,0.08);
+  --glass-border: rgba(255,255,255,0.5);
+  --glow: 0 4px 30px rgba(108,155,216,0.28);
+  --transition: 300ms cubic-bezier(.2,.9,.3,1);
+  --text: #111827;
+  --dark-bg: #0b1220;
+  --dark-card: rgba(9,12,18,0.45);
+}
+
+/* Dark mode override */
+body.dark {
+  --bg: linear-gradient(180deg,#071026,#0b1220);
+  --card: rgba(10,14,20,0.6);
+  --glass: rgba(255,255,255,0.03);
+  --text: #e6eef6;
+  --muted: #b6c1cf;
+  --shadow-1: 0 12px 30px rgba(0,0,0,0.5);
+  --glow: 0 20px 80px rgba(123,196,255,0.06);
+}
+
+/* ========= base ========= */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI", Roboto,"Helvetica Neue",Arial;
+  background: var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* loader */
+.loader{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(0,0,0,0.04), rgba(255,255,255,0.02));
+  z-index:9999;
+}
+.loader-inner{display:flex;flex-direction:column;align-items:center;gap:18px;color:var(--muted)}
+.loader svg{animation:spin 1.6s linear infinite;color:var(--accent)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ========= app layout ========= */
+.app{
+  display:grid;
+  grid-template-columns: 1fr 480px;
+  gap:28px;
+  padding:28px;
+  height:100vh;
+  align-items:stretch;
+}
+
+/* Mobile: stack */
+@media (max-width:900px){
+  .app{grid-template-columns:1fr; padding:16px}
+  .preview-panel{order:2}
+  .customize-panel{order:1}
+}
+
+/* panel common */
+.panel{
+  background: var(--card);
+  border-radius: calc(var(--radius) + 6px);
+  padding:18px;
+  box-shadow: var(--shadow-1);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(8px) saturate(120%);
+  display:flex;flex-direction:column;
+}
+
+/* preview panel */
+.preview-panel{
+  min-height:520px;
+  position:relative;
+  overflow:hidden;
+}
+.preview-topbar{
+  display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+}
+.preview-wrap{
+  flex:1; display:grid; place-items:center; position:relative; border-radius:12px; padding:16px;
+}
+
+/* background for preview stage */
+.preview-bg{
+  position:absolute; inset:16px; border-radius:16px; z-index:0;
+  background: radial-gradient(1200px 400px at 10% 10%, rgba(123,155,216,0.12), transparent 10%),
+              radial-gradient(900px 300px at 90% 90%, rgba(123,231,199,0.06), transparent 12%);
+  filter:blur(8px); pointer-events:none;
+}
+
+/* stage */
+.char-stage{
+  width:100%; max-width:460px; height:640px; aspect-ratio: 2/3;
+  display:flex; align-items:center; justify-content:center; position:relative; z-index:1;
+  cursor:grab;
+  transition: transform var(--transition);
+}
+.char-stage:active{cursor:grabbing}
+
+/* preview footer */
+.preview-footer{ margin-top:10px; font-size:12px; color:var(--muted); text-align:center; }
+
+/* customize panel */
+.custom-topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px}
+.tabs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px}
+.tab{background:transparent;border:none;padding:10px 12px;border-radius:12px;color:var(--muted);cursor:pointer;transition:all 180ms}
+.tab.active{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white; box-shadow:var(--glow)}
+.tab:focus{outline:2px solid rgba(0,0,0,0.06)}
+
+.tab-contents{flex:1; overflow:auto; padding-right:6px}
+.tab-content{display:none; padding:6px 0}
+.tab-content.active{display:block}
+
+/* forms */
+label{display:block;margin:10px 0;font-size:14px;color:var(--muted)}
+input[type="color"]{height:40px;width:100%;border-radius:10px;border:none;padding:6px}
+input[type="range"]{width:100%}
+select{width:100%;padding:10px;border-radius:10px;border:none;background:rgba(255,255,255,0.7)}
+
+/* footer */
+.custom-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+
+/* buttons */
+.btn{
+  padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(180deg,rgba(255,255,255,0.6),rgba(255,255,255,0.2)); cursor:pointer;
+  box-shadow:var(--shadow-1); transition:transform var(--transition), box-shadow var(--transition);
+}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2)); color:white}
+.btn.ghost{background:transparent; border:1px solid rgba(255,255,255,0.06)}
+.btn.icon{padding:8px 10px}
+.btn:hover{transform:translateY(-4px)}
+.btn:active{transform:translateY(0) scale(0.99)}
+.btn.outline{background:transparent;border:1px dashed rgba(255,255,255,0.06)}
+
+/* ripple effect via pseudo element */
+.btn::after{
+  content:"";position:absolute;border-radius:inherit;left:0;top:0;width:100%;height:100%;pointer-events:none;
+  transition:opacity 450ms, transform 450ms; opacity:0; transform:scale(0.95);
+}
+.btn:active::after{opacity:0.08; transform:scale(1.02)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(6,8,16,0.6);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal{width:min(760px,92%);background:var(--card);padding:14px;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.modal header{display:flex;align-items:center;justify-content:space-between}
+.saves-list{max-height:360px;overflow:auto;margin-top:12px}
+.save-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:10px;margin-bottom:8px;background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent)}
+.save-item .meta{font-size:13px;color:var(--muted)}
+
+/* subtle transitions applied to "transitionable" elements in SVG */
+svg .transitionable{transition:fill var(--transition), transform var(--transition), opacity var(--transition)}
+
+/* helper classes */
+.hidden{display:none}
+.controls-inline{display:flex;gap:8px;align-items:center}
+
+/* responsiveness */
+@media (max-width:1200px){
+  .app{grid-template-columns:1fr 420px}
+}
+@media (max-width:700px){
+  .app{grid-template-columns:1fr}
+}
+
+/* small neat details */
+.muted{color:var(--muted);font-size:13px}
